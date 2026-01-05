@@ -65,4 +65,6 @@ jobs:
       - name: Publish to npm
         run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || '' }}
+          # TOKEN is optional when using OIDC Trusted Publishing
+          # If present, it will be used as fallback authentication
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
