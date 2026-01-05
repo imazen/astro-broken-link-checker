@@ -22,7 +22,7 @@ Trusted Publishing uses GitHub's OIDC provider to authenticate directly with NPM
    - Select "GitHub Actions" as the provider
    - Fill in the required fields:
      - **Organization/Username**: `imazen`
-     - **Repository**: `astro-broken-link-checker`
+     - **Repository**: `astro-broken-link-checker` (note: repository name, not package name)
      - **Workflow**: `ci.yml`
      - **Environment**: Leave blank (or specify if using GitHub Environments)
    - Save the configuration
