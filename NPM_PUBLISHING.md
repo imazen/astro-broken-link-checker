@@ -17,7 +17,7 @@ Create a granular access token for enhanced security:
 
 1. Generate an NPM access token using the CLI:
    ```bash
-   npm token create --cidr-whitelist=
+   npm token create
    ```
    
    Or via the web interface:
@@ -39,7 +39,7 @@ Create a granular access token for enhanced security:
 
 For the most secure deployment, consider adopting OIDC trusted publishing, which eliminates the need to generate and manage tokens. This approach uses GitHub's OIDC provider to authenticate directly with NPM.
 
-See NPM's documentation on [configuring OIDC trusted publishing](https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions) for setup instructions.
+See NPM's documentation on [Trusted Publishers](https://docs.npmjs.com/about-trusted-publishers) for setup instructions.
 
 ### 2. Automatic Publishing
 
