@@ -13,6 +13,9 @@
     "README.md",
     "LICENSE"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "astro",
     "astro-integration",
@@ -30,14 +33,14 @@
   },
   "homepage": "https://github.com/imazen/astro-broken-link-checker#readme",
   "dependencies": {
-    "fast-glob": "^3.3.2",
+    "fast-glob": "^3.3.3",
     "node-fetch": "^3.3.2",
-    "node-html-parser": "^6.1.13",
-    "p-limit": "^6.1.0"
+    "node-html-parser": "^7.0.1",
+    "p-limit": "^7.2.0"
   },
   "devDependencies": {
-    "execa": "^9.4.0",
-    "vitest": "^3.2.4"
+    "execa": "^9.6.1",
+    "vitest": "^4.0.16"
   },
   "scripts": {
     "build": "echo 'no build needed'",
