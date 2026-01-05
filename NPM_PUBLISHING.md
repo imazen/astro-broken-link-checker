@@ -4,18 +4,42 @@ This document explains how to publish `astro-broken-links-checker` to NPM.
 
 ## Prerequisites
 
-1. **NPM Account**: You need an NPM account with publishing permissions for this package
-2. **NPM Token**: An NPM authentication token with publish access must be added as a GitHub secret
+**NPM Account**: You need an NPM account with publishing permissions for this package
 
 ## Setup Instructions
 
-### 1. Add NPM Token to GitHub
+### Option 1: Trusted Publishing with OIDC (Recommended)
 
-#### Option A: Granular Access Token (Recommended)
+Trusted Publishing uses GitHub's OIDC provider to authenticate directly with NPM, eliminating the need to manage tokens. This is the most secure option.
 
-Create a granular access token for enhanced security via the web interface:
+#### Setup Steps:
 
-1. Generate an NPM access token:
+1. **Configure NPM Trusted Publisher**:
+   - Log in to [npmjs.com](https://www.npmjs.com)
+   - Go to your package page (or create the package if it doesn't exist yet)
+   - Navigate to Settings → Publishing Access
+   - Click "Add Trusted Publisher"
+   - Select "GitHub Actions" as the provider
+   - Fill in the required fields:
+     - **Organization/Username**: `imazen`
+     - **Repository**: `astro-broken-link-checker`
+     - **Workflow**: `ci.yml`
+     - **Environment**: Leave blank (or specify if using GitHub Environments)
+   - Save the configuration
+
+2. **No GitHub Secrets Required**: With OIDC, you don't need to add any secrets to your GitHub repository. The workflow is already configured to use OIDC authentication with the `id-token: write` permission.
+
+3. **Automatic Publishing**: Once configured, the package will automatically publish to NPM when code is pushed to the `main` branch and all tests pass.
+
+**Note**: The GitHub Actions workflow has been updated to support provenance statements, which provide additional security and transparency.
+
+### Option 2: Token-Based Authentication (Alternative)
+
+If you prefer to use token-based authentication or if OIDC is not available:
+
+#### Setup Steps:
+
+1. **Generate an NPM Access Token**:
    - Go to https://www.npmjs.com/settings/~/tokens
    - Click "Generate New Token" → "Granular Access Token"
    - Select appropriate package permissions
@@ -23,27 +47,14 @@ Create a granular access token for enhanced security via the web interface:
    - Set expiration (granular write tokens are limited to 90 days maximum)
    - Copy the generated token
 
-2. Add the token to GitHub repository secrets:
+2. **Add Token to GitHub Repository Secrets**:
    - Go to repository Settings → Secrets and variables → Actions
    - Click "New repository secret"
    - Name: `NPM_TOKEN`
    - Value: Paste the NPM token
    - Click "Add secret"
 
-#### Option B: Trusted Publishing (Most Secure)
-
-For the most secure deployment, consider adopting Trusted Publishing, which eliminates the need to generate and manage tokens. This approach uses GitHub's OIDC provider to authenticate directly with NPM.
-
-See NPM's documentation on [Trusted Publishers](https://docs.npmjs.com/about-trusted-publishers) for setup instructions.
-
-### 2. Automatic Publishing
-
-Once the `NPM_TOKEN` secret is configured, the package will automatically publish to NPM when:
-
-1. Code is pushed to the `main` branch
-2. All tests pass successfully
-
-The GitHub Actions workflow (`.github/workflows/ci.yml`) handles this automatically.
+3. **Automatic Publishing**: The package will automatically publish to NPM when code is pushed to the `main` branch and all tests pass.
 
 ## Manual Publishing (Alternative)
 
