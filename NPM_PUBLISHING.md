@@ -13,14 +13,9 @@ This document explains how to publish `astro-broken-links-checker` to NPM.
 
 #### Option A: Granular Access Token (Recommended)
 
-Create a granular access token for enhanced security:
+Create a granular access token for enhanced security via the web interface:
 
-1. Generate an NPM access token using the CLI:
-   ```bash
-   npm token create
-   ```
-   
-   Or via the web interface:
+1. Generate an NPM access token:
    - Go to https://www.npmjs.com/settings/~/tokens
    - Click "Generate New Token" → "Granular Access Token"
    - Select appropriate package permissions
@@ -35,9 +30,9 @@ Create a granular access token for enhanced security:
    - Value: Paste the NPM token
    - Click "Add secret"
 
-#### Option B: OIDC Trusted Publishing (Most Secure)
+#### Option B: Trusted Publishing (Most Secure)
 
-For the most secure deployment, consider adopting OIDC trusted publishing, which eliminates the need to generate and manage tokens. This approach uses GitHub's OIDC provider to authenticate directly with NPM.
+For the most secure deployment, consider adopting Trusted Publishing, which eliminates the need to generate and manage tokens. This approach uses GitHub's OIDC provider to authenticate directly with NPM.
 
 See NPM's documentation on [Trusted Publishers](https://docs.npmjs.com/about-trusted-publishers) for setup instructions.
 
