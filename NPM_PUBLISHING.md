@@ -19,8 +19,8 @@ Create a granular access token for enhanced security via the web interface:
    - Go to https://www.npmjs.com/settings/~/tokens
    - Click "Generate New Token" → "Granular Access Token"
    - Select appropriate package permissions
-   - For CI/CD workflows, enable "Bypass 2FA for noninteractive automated workflows"
-   - Set expiration (write tokens are limited to 90 days maximum)
+   - For CI/CD workflows, enable "Bypass 2FA" for automated publishing workflows
+   - Set expiration (granular write tokens are limited to 90 days maximum)
    - Copy the generated token
 
 2. Add the token to GitHub repository secrets:
