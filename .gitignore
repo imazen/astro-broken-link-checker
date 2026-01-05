@@ -133,3 +133,6 @@ dist/
 broken-links.log
 tests/broken-links.log
 .idea/
+
+# Astro build artifacts
+tests/.astro/
