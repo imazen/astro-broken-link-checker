@@ -1,0 +1,24 @@
+# Test files and directories
+tests/
+*.test.js
+vitest.config.js
+
+# Development files
+.github/
+.editorconfig
+.gitattributes
+.gitignore
+.vscode/
+.idea/
+
+# Logs
+*.log
+broken-links.log
+
+# Build artifacts
+node_modules/
+coverage/
+dist/
+
+# Source control
+.git/

@@ -7,6 +7,12 @@
   "exports": {
     ".": "./index.js"
   },
+  "files": [
+    "index.js",
+    "check-links.js",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "astro",
     "astro-integration",
@@ -14,7 +20,15 @@
     "link-checker"
   ],
   "author": "Lilith River",
-  "license": "Apache License 2.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imazen/astro-broken-link-checker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/imazen/astro-broken-link-checker/issues"
+  },
+  "homepage": "https://github.com/imazen/astro-broken-link-checker#readme",
   "dependencies": {
     "fast-glob": "^3.3.2",
     "node-fetch": "^3.3.2",
