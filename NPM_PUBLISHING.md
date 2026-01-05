@@ -11,11 +11,21 @@ This document explains how to publish `astro-broken-links-checker` to NPM.
 
 ### 1. Add NPM Token to GitHub
 
-1. Generate an NPM access token:
-   - Go to https://www.npmjs.com/
-   - Click on your profile → "Access Tokens"
-   - Click "Generate New Token" → "Classic Token"
-   - Select "Automation" (for CI/CD)
+#### Option A: Granular Access Token (Recommended)
+
+Create a granular access token for enhanced security:
+
+1. Generate an NPM access token using the CLI:
+   ```bash
+   npm token create --cidr-whitelist=
+   ```
+   
+   Or via the web interface:
+   - Go to https://www.npmjs.com/settings/~/tokens
+   - Click "Generate New Token" → "Granular Access Token"
+   - Select appropriate package permissions
+   - For CI/CD workflows, enable "Bypass 2FA for noninteractive automated workflows"
+   - Set expiration (write tokens are limited to 90 days maximum)
    - Copy the generated token
 
 2. Add the token to GitHub repository secrets:
@@ -24,6 +34,12 @@ This document explains how to publish `astro-broken-links-checker` to NPM.
    - Name: `NPM_TOKEN`
    - Value: Paste the NPM token
    - Click "Add secret"
+
+#### Option B: OIDC Trusted Publishing (Most Secure)
+
+For the most secure deployment, consider adopting OIDC trusted publishing, which eliminates the need to generate and manage tokens. This approach uses GitHub's OIDC provider to authenticate directly with NPM.
+
+See NPM's documentation on [configuring OIDC trusted publishing](https://docs.npmjs.com/generating-provenance-statements#publishing-packages-with-provenance-via-github-actions) for setup instructions.
 
 ### 2. Automatic Publishing
 
