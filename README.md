@@ -35,7 +35,7 @@ npm install astro-broken-links-checker
 Finally, update your `astro.config.mjs`
 ```js
 import { defineConfig } from 'astro/config';
-import astroBrokenLinksChecker from 'astro-broken-link-checker';
+import astroBrokenLinksChecker from 'astro-broken-links-checker';
 
 export default defineConfig({
   // ... other configurations ...
