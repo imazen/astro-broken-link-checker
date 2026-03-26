@@ -6,7 +6,7 @@
     "dev": "npx astro dev"
   },
   "dependencies": {
-    "astro": "^5.16.6",
+    "astro": "^5.18.1",
     "astro-broken-links-checker": "file:..",
     "execa": "^9.6.1"
   }
