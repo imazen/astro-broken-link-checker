@@ -114,12 +114,19 @@ export async function checkLinksInHtml(
       }
 
       if (checkedLinks.has(fetchLink)) {
-        const isBroken = !checkedLinks.get(fetchLink);
-        if (isBroken) {
+        const isValid = await checkedLinks.get(fetchLink);
+        if (!isValid) {
           addBrokenLink(brokenLinksMap, documentPath, link, distPath);
         }
         return;
       }
+
+      // Store an in-flight promise so concurrent checks for the same URL
+      // coalesce onto a single fetch rather than each issuing their own request.
+      let resolveCheck;
+      const checkPromise = new Promise((resolve) => { resolveCheck = resolve; });
+      checkedLinks.set(fetchLink, checkPromise);
+      checkedLinks.set(absoluteLink, checkPromise);
 
       let isBroken = false;
 
@@ -200,9 +207,7 @@ export async function checkLinksInHtml(
         }
       }
 
-      // Cache the link's validity
-      checkedLinks.set(fetchLink, !isBroken);
-      checkedLinks.set(absoluteLink, !isBroken);
+      resolveCheck(!isBroken);
 
       if (isBroken) {
         addBrokenLink(brokenLinksMap, documentPath, link, distPath);
