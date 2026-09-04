@@ -1,7 +1,7 @@
 import {fileURLToPath} from 'url';
 import {join} from 'path';
 import fs from 'fs';
-import {checkLinksInHtml, normalizeHtmlFilePath, loadExternalLinkCache, saveExternalLinkCache} from './check-links.js';
+import {checkLinksInHtml, normalizeHtmlFilePath, loadExternalLinkCache, saveExternalLinkCache, createIgnoreMatcher} from './check-links.js';
 import fastGlob from 'fast-glob';
 import pLimit from 'p-limit';
 
@@ -35,6 +35,8 @@ export default function astroBrokenLinksChecker(options = {}) {
   const verifiedLinksPath = join(linkCheckerDir, VERIFIED_LINKS_FILE);
   const brokenLinksMap = new Map(); // Map of brokenLink -> Set of documents
   const checkedLinks = new Map();
+  // Compiled once so every page reuses the same patterns
+  const isIgnored = createIgnoreMatcher(options.ignore);
   let externalLinkCache = null;
 
   return {
@@ -91,6 +93,7 @@ export default function astroBrokenLinksChecker(options = {}) {
               options.trailingSlash,
               externalLinkCache,
               options.base,
+              isIgnored,
             );
           })
         );

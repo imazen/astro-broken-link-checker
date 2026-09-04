@@ -19,6 +19,10 @@ export default defineConfig({
     astroBrokenLinksChecker({
       checkExternalLinks: true, // default: false
       throwError: true,         // default: false
+      ignore: [                 // default: [] (nothing ignored)
+        '/preview/**',
+        'https://twitter.com/**',
+      ],
     }),
   ],
 });
@@ -32,10 +36,34 @@ export default defineConfig({
 | `cacheExternalLinks` | `boolean` | `true` | Cache verified external links to disk to speed up subsequent builds. |
 | `throwError` | `boolean` | `false` | Fail the build if any broken links are found. |
 | `linkCheckerDir` | `string` | `'.link-checker'` | Directory for cache and log files. |
+| `ignore` | `string \| RegExp \| Function \| Array` | `[]` | Links to skip entirely. See [Ignoring links](#ignoring-links). |
+
+### Ignoring links
+
+`ignore` accepts a single pattern or an array of patterns. A link is skipped — never checked, never reported — if any pattern matches either its raw `href` or its resolved absolute path.
+
+```js
+astroBrokenLinksChecker({
+  ignore: [
+    '/under-construction',       // exact match
+    '/preview/*',                // glob: `*` matches within one path segment
+    '/legacy/**',                // glob: `**` matches across `/`
+    /^https:\/\/localhost:/,     // RegExp
+    (link) => link.includes('?draft='), // predicate function
+  ],
+})
+```
+
+Pattern types:
+
+- **String** — a glob. `*` matches any run of characters except `/`, `**` matches across `/`, and `?` matches a single non-`/` character. Everything else is literal, and the pattern must match the whole link.
+- **RegExp** — tested against the link (the `g` flag is ignored, so matching is stateless).
+- **Function** — receives the link and returns `true` to ignore it.
 
 ## Features
 
 - **Checks `<a href>` and `<img src>`** references in all built HTML pages.
+- **Ignore list**: Skip links by glob, RegExp, or predicate function.
 - **Deduplication**: Each unique link is checked only once across all pages.
 - **Parallel processing**: Pages (up to 50 concurrent) and HTTP requests (up to 10 concurrent) run in parallel.
 - **Base path support**: Respects Astro's `base` config, stripping the prefix before checking file existence.

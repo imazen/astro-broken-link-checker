@@ -48,6 +48,7 @@ async function buildWith(opts) {
       checkExternalLinks: opts.checkExternalLinks ?? false,
       cacheExternalLinks: opts.cacheExternalLinks ?? true,
       throwError: opts.throwError ?? false,
+      ignore: opts.ignore,
       linkCheckerDir,
     })],
     logLevel: 'silent',
@@ -198,5 +199,27 @@ describe('custom linkCheckerDir', () => {
 
     // Verify .gitignore was created in the custom directory
     expect(fs.existsSync(path.join(customDir, '.gitignore'))).toBe(true);
+  });
+}, 60000);
+
+describe('ignore option', () => {
+  it('excludes ignored links from the log', async () => {
+    const result = await buildWith({
+      outDir: './dist-ignore/',
+      trailingSlash: 'ignore',
+      ignore: ['/non-existent-page*'],
+    });
+
+    expect(result.logContent).not.toContain('non-existent-page');
+  });
+
+  it('still reports links that no pattern matches', async () => {
+    const result = await buildWith({
+      outDir: './dist-ignore-partial/',
+      trailingSlash: 'ignore',
+      ignore: ['/some-other-path'],
+    });
+
+    expect(result.logContent).toContain('non-existent-page');
   });
 }, 60000);
