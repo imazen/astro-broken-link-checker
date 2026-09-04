@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import { execa } from 'execa';
-import { checkLinksInHtml, normalizeHtmlFilePath, loadExternalLinkCache, saveExternalLinkCache } from '../check-links.js';
+import { checkLinksInHtml, normalizeHtmlFilePath, loadExternalLinkCache, saveExternalLinkCache, createIgnoreMatcher } from '../check-links.js';
 
 const testsDir = import.meta.dirname;
 const distPath = path.join(testsDir, 'dist');
@@ -33,6 +33,7 @@ async function getBrokenLinks(html, opts = {}) {
     opts.trailingSlash || 'ignore',
     opts.externalLinkCache || null,
     opts.base || '',
+    createIgnoreMatcher(opts.ignore),
   );
   return brokenLinksMap;
 }
@@ -204,5 +205,121 @@ describe('normalizeHtmlFilePath', () => {
     expect(normalizeHtmlFilePath('/dist/page.html', '/dist')).toBe('/page');
     // Root index.html normalizes to /index (normalizePath only strips /index.html suffix)
     expect(normalizeHtmlFilePath('/dist/index.html', '/dist')).toBe('/index');
+  });
+});
+
+describe('ignore option', () => {
+  it('skips a link matching an exact string pattern', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/non-existent">A</a><a href="/also-missing">B</a>',
+      { ignore: ['/non-existent'] }
+    );
+    expect(map.has('/non-existent')).toBe(false);
+    expect(map.has('/also-missing')).toBe(true);
+  });
+
+  it('accepts a single pattern rather than an array', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/non-existent">A</a>',
+      { ignore: '/non-existent' }
+    );
+    expect(map.size).toBe(0);
+  });
+
+  it('matches glob wildcards, with * stopping at /', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/legacy/one">A</a><a href="/legacy/deep/two">B</a>',
+      { ignore: ['/legacy/*'] }
+    );
+    expect(map.has('/legacy/one')).toBe(false);
+    // A single * does not cross a path separator
+    expect(map.has('/legacy/deep/two')).toBe(true);
+  });
+
+  it('matches across path separators with **', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/legacy/deep/two">B</a>',
+      { ignore: ['/legacy/**'] }
+    );
+    expect(map.size).toBe(0);
+  });
+
+  it('matches RegExp patterns', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/non-existent">A</a><a href="/also-missing">B</a>',
+      { ignore: [/^\/non-/] }
+    );
+    expect(map.has('/non-existent')).toBe(false);
+    expect(map.has('/also-missing')).toBe(true);
+  });
+
+  it('matches predicate functions', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/non-existent">A</a><a href="/also-missing">B</a>',
+      { ignore: (link) => link.includes('missing') }
+    );
+    expect(map.has('/non-existent')).toBe(true);
+    expect(map.has('/also-missing')).toBe(false);
+  });
+
+  it('matches the resolved absolute link, not just the raw href', async () => {
+    const map = await getBrokenLinks(
+      '<a href="../non-existent">Up</a>',
+      { baseUrl: '/about/', ignore: ['/non-existent'] }
+    );
+    expect(map.size).toBe(0);
+  });
+
+  it('skips external links without fetching them', async () => {
+    const map = await getBrokenLinks(
+      '<a href="https://example.invalid/page">Ext</a>',
+      { checkExternalLinks: true, ignore: ['https://example.invalid/**'] }
+    );
+    expect(map.size).toBe(0);
+  });
+
+  it('skips trailing slash violations for ignored links', async () => {
+    const map = await getBrokenLinks(
+      '<a href="/about">About</a>',
+      { trailingSlash: 'always', ignore: ['/about'] }
+    );
+    expect(map.size).toBe(0);
+  });
+
+  it('does nothing when no ignore option is given', async () => {
+    const map = await getBrokenLinks('<a href="/non-existent">A</a>');
+    expect(map.has('/non-existent')).toBe(true);
+  });
+});
+
+describe('createIgnoreMatcher', () => {
+  it('returns a false-returning matcher for empty input', () => {
+    expect(createIgnoreMatcher()( '/anything')).toBe(false);
+    expect(createIgnoreMatcher([])('/anything')).toBe(false);
+    expect(createIgnoreMatcher([''])('/anything')).toBe(false);
+  });
+
+  it('treats pattern characters outside globs as literal', () => {
+    const matcher = createIgnoreMatcher(['/a.b+c']);
+    expect(matcher('/a.b+c')).toBe(true);
+    expect(matcher('/axbxc')).toBe(false);
+  });
+
+  it('matches ? as a single non-slash character', () => {
+    const matcher = createIgnoreMatcher(['/page-?']);
+    expect(matcher('/page-1')).toBe(true);
+    expect(matcher('/page-12')).toBe(false);
+  });
+
+  it('is not affected by a global-flagged RegExp lastIndex', () => {
+    const matcher = createIgnoreMatcher([/legacy/g]);
+    expect(matcher('/legacy/one')).toBe(true);
+    expect(matcher('/legacy/two')).toBe(true);
+  });
+
+  it('matches when any of the supplied link forms matches', () => {
+    const matcher = createIgnoreMatcher(['/resolved']);
+    expect(matcher('../resolved', '/resolved')).toBe(true);
+    expect(matcher('../other', '/other')).toBe(false);
   });
 });

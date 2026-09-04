@@ -56,6 +56,65 @@ export function saveExternalLinkCache(cachePath, cache) {
   fs.writeFileSync(cachePath, lines.join('\n'), 'utf8');
 }
 
+/**
+ * Convert a glob-style pattern into an anchored RegExp.
+ * `*` matches any run of characters except `/`, `**` matches across `/`,
+ * and `?` matches a single non-`/` character. Everything else is literal.
+ * @param {string} pattern
+ * @returns {RegExp}
+ */
+function globToRegExp(pattern) {
+  let source = '';
+  for (let i = 0; i < pattern.length; i++) {
+    const char = pattern[i];
+    if (char === '*') {
+      if (pattern[i + 1] === '*') {
+        source += '.*';
+        i++;
+      } else {
+        source += '[^/]*';
+      }
+    } else if (char === '?') {
+      source += '[^/]';
+    } else {
+      source += char.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+    }
+  }
+  return new RegExp(`^${source}$`);
+}
+
+/**
+ * Build a predicate that reports whether a link should be skipped.
+ * Accepts glob strings, RegExps, predicate functions, or an array of those.
+ * A link is ignored when any pattern matches any of the forms it is given
+ * (the raw href and its resolved absolute form).
+ * @param {string|RegExp|Function|Array<string|RegExp|Function>} [ignore]
+ * @returns {(...links: string[]) => boolean}
+ */
+export function createIgnoreMatcher(ignore) {
+  const patterns = ignore == null ? [] : (Array.isArray(ignore) ? ignore : [ignore]);
+  const tests = [];
+
+  for (const pattern of patterns) {
+    if (typeof pattern === 'function') {
+      tests.push(pattern);
+    } else if (pattern instanceof RegExp) {
+      // Drop the global flag so repeated tests are not affected by lastIndex
+      const re = new RegExp(pattern.source, pattern.flags.replace('g', ''));
+      tests.push((link) => re.test(link));
+    } else if (typeof pattern === 'string' && pattern.trim() !== '') {
+      const re = globToRegExp(pattern);
+      tests.push((link) => re.test(link));
+    }
+  }
+
+  if (tests.length === 0) {
+    return () => false;
+  }
+
+  return (...links) => links.some((link) => link && tests.some((test) => test(link)));
+}
+
 export async function checkLinksInHtml(
   htmlContent,
   brokenLinksMap,
@@ -69,6 +128,7 @@ export async function checkLinksInHtml(
   trailingSlash = 'ignore',
   externalLinkCache = null,
   base = '',
+  isIgnored = () => false,
 ) {
   const root = parse(htmlContent);
   const links = [
@@ -96,6 +156,12 @@ export async function checkLinksInHtml(
       } catch (err) {
         // Invalid URL, skip
         logger.error(`Invalid URL in ${normalizePath(documentPath)} ${link} ${err}`);
+        return;
+      }
+
+      // Skip links the user has explicitly ignored, matching on either the
+      // raw href or its resolved absolute form.
+      if (isIgnored(link, absoluteLink)) {
         return;
       }
 
